@@ -20,6 +20,33 @@ def get_block_transactions(raw_hex, blockchain_type):
     """
     # Skipping the header
     transaction_data = raw_hex[80:]
+    # Check if the block is AuxPOW (then after the 80 byte header there is an immediate coinbase transaction)
+    #print("".join(hex(ord(x)) for x in transaction_data[:4]))
+    if blockchain_type.symbol == "doge" and ((transaction_data[:4] == b'\x01\x00\x00\x00') or (transaction_data[:4] == b'\x02\x00\x00\x00')): # it is indeed an AuxPOW block
+        #print("AuxPOW")
+        transaction = None
+        # Try from 1024 (1KiB) -> 1073741824 (1GiB) slice widths
+        for j in range(0, 20):
+            try:
+                offset_e = 1024 * 2 ** j
+                transaction = Transaction.from_hex(
+                    transaction_data[:offset_e], blockchain_type)
+                break
+            except:
+                continue
+        #print(transaction.hash)
+        offset = transaction.size + 32
+        # coinbase_branch
+        branch_length, size = decode_varint(transaction_data[offset:])
+        offset += size + branch_length*32
+        offset += 4
+        # blockchain_branch
+        branch_length, size = decode_varint(transaction_data[offset:])
+        offset += size + branch_length*32
+        offset += 4
+        # parent_block header
+        offset += 80
+        transaction_data = transaction_data[offset:]
 
     # Decoding the number of transactions, offset is the size of
     # the varint (1 to 9 bytes)
