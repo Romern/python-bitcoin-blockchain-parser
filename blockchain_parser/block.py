@@ -22,7 +22,7 @@ def get_block_transactions(raw_hex, blockchain_type):
     transaction_data = raw_hex[80:]
     # Check if the block is AuxPOW (then after the 80 byte header there is an immediate coinbase transaction)
     #print("".join(hex(ord(x)) for x in transaction_data[:4]))
-    if blockchain_type.symbol == "doge" and transaction_data[:4] in [b'\x01\x00\x00\x00', b'\x02\x00\x00\x00', b'\x02\x00\x00\x20']: # it is indeed an AuxPOW block
+    if blockchain_type.symbol == "doge" and transaction_data[:4] in [b'\x01\x00\x00\x00', b'\x02\x00\x00\x00', b'\x02\x00\x00\x20', b'\x02\x10\x00\x20']: # it is indeed an AuxPOW block
         #print("AuxPOW")
         transaction = None
         # Try from 1024 (1KiB) -> 1073741824 (1GiB) slice widths
